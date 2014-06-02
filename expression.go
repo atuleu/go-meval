@@ -13,6 +13,9 @@ type Context interface {
 }
 
 // An expression can be evaluated
+// 
+// BUG(tuleu): the expression evaluation mechanism is so simple that
+// call loop can be easily implemented !
 type Expression interface {
 	// Evaluates The expression. You can pass a context to refer other
 	// expression.  You can also pass nil as a context.

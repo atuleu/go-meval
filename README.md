@@ -14,8 +14,10 @@ This AST can then be evaluated within a context, letting user define a dictionna
 go get github.com/atuleu/go-meval
 ```
 
-## 2. Documentation
+## 2. Roadmap
 
-TODO
+Still in alpha release. No complex github issue for that task list
+
+see [roadmap.md]
 
 # 3. Contribute 
