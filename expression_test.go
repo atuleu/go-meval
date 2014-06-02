@@ -64,3 +64,19 @@ func (s *ExprSuite) TestUnfoundVariableEvaluation(c *C) {
 	c.Check(math.IsNaN(res), Equals, true)
 
 }
+
+func ExampleExpression_basic() {
+	expr, err := Compile("1.0 + 2.0")
+	if err != nil {
+		fmt.Printf("Got error: %s", err)
+		return
+	}
+
+	res, err := expr.Eval(nil)
+	if err != nil {
+		fmt.Printf("Got error: %s", err)
+		return
+	}
+	fmt.Printf("%f", res)
+	//Output: 3.000000
+}
