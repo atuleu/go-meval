@@ -1,4 +1,4 @@
-package eval
+package meval
 
 import (
 	. "gopkg.in/check.v1"
