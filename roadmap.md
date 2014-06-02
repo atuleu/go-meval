@@ -1,4 +1,7 @@
-# Task list
+# Roadmap
+
+
+Roadmap is so simple as a TODO list :
 
 - [ ] Adds an interface for new operator / function
   - [ ] Adds support for root, binary and N-ary function
