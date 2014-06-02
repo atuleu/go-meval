@@ -1,12 +1,11 @@
 package meval
 
 import (
-	"io"
-	"strconv"
-	"math"
 	"fmt"
+	"io"
+	"math"
+	"strconv"
 )
-
 
 type outQueue struct {
 	q []Expression
@@ -114,11 +113,11 @@ func registerFunction(name string, evaluer unaryEvaluer) {
 }
 
 func init() {
-	registerOperator(tokPlus, 2, true, func(a float64, b float64) float64 { return a + b })
-	registerOperator(tokMinus, 2, true, func(a float64, b float64) float64 { return a - b })
-	registerOperator(tokMult, 3, true, func(a float64, b float64) float64 { return a * b })
-	registerOperator(tokDivide, 3, true, func(a float64, b float64) float64 { return a / b })
-	registerOperator(tokPower, 4, false, func(a float64, b float64) float64 { return math.Pow(a, b) })
+	registerOperator(TokPlus, 2, true, func(a float64, b float64) float64 { return a + b })
+	registerOperator(TokMinus, 2, true, func(a float64, b float64) float64 { return a - b })
+	registerOperator(TokMult, 3, true, func(a float64, b float64) float64 { return a * b })
+	registerOperator(TokDivide, 3, true, func(a float64, b float64) float64 { return a / b })
+	registerOperator(TokPower, 4, false, func(a float64, b float64) float64 { return math.Pow(a, b) })
 
 	registerFunction("sin", func(a float64) float64 { return math.Sin(a) })
 	registerFunction("cos", func(a float64) float64 { return math.Cos(a) })
@@ -166,7 +165,7 @@ func buildAST(input string) (Expression, error) {
 			return nil, err
 		}
 
-		if t.Type == tokValue {
+		if t.Type == TokValue {
 			if value, err := strconv.ParseFloat(t.Value, 64); err != nil {
 				return nil, err
 			} else {
@@ -176,7 +175,7 @@ func buildAST(input string) (Expression, error) {
 		}
 
 		// checks for a function or a number
-		if t.Type == tokIdent {
+		if t.Type == TokIdent {
 			if fn, ok := functions[t.Value]; ok == true {
 				stack.push(operatorFromFunction(fn))
 			} else {
@@ -185,7 +184,7 @@ func buildAST(input string) (Expression, error) {
 			continue
 		}
 
-		if t.Type == tokComma {
+		if t.Type == TokComma {
 			for stack.size() > 0 && stack.unsafeTop().oType != opLeftParenthesis {
 				if err := popOperatorFromStack(&output, &stack); err != nil {
 					return nil, err
@@ -223,7 +222,7 @@ func buildAST(input string) (Expression, error) {
 			continue
 		}
 
-		if t.Type == tokOParen {
+		if t.Type == TokOParen {
 			stack.push(operator{
 				oType: opLeftParenthesis,
 				poper: func(*outQueue) Expression {
@@ -233,7 +232,7 @@ func buildAST(input string) (Expression, error) {
 			continue
 		}
 
-		if t.Type == tokCParen {
+		if t.Type == TokCParen {
 			for stack.size() > 0 && stack.unsafeTop().oType != opLeftParenthesis {
 				if err := popOperatorFromStack(&output, &stack); err != nil {
 					return nil, err

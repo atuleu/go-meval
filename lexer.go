@@ -8,30 +8,54 @@ import (
 	"unicode/utf8"
 )
 
+// Type of a Token
 type TokenType int
 
 const (
-	tokPlus TokenType = iota
-	tokMinus
-	tokMult
-	tokDivide
-	tokIdent
-	tokOParen
-	tokCParen
-	tokValue
-	tokComma
-	tokPower
+	// '+' sign
+	TokPlus TokenType = iota
+	// '-' sign
+	TokMinus
+	// '*' sign
+	TokMult
+	// '/' sign
+	TokDivide
+	// '^'
+	TokPower
+	// '(' sign
+	TokOParen
+	// '')' sign
+	TokCParen
+	// ','
+	TokComma
+	// '[a-zA-Z0-9_]+ regex
+	TokIdent
+	// A floating number value
+	TokValue
 )
 
+// A Token represent a lexed string
+//
+// TODO(tuleu): Maybe improve by giving indexes of the input string,
+// and ref to the input string. Value then should be a function
 type Token struct {
-	Type  TokenType
+	// The TokenType
+	Type TokenType
+
+	// The Lexed string
 	Value string
 }
 
+// Creates a new token
 func NewToken(t TokenType, value string) Token {
 	return Token{Type: t, Value: value}
 }
 
+// A Lexer is used to sequentially cut an input string in a sequence
+// of Token.
+//
+// A new Lexer can be instantiated using NewLexer(). Each token would
+// be obtain using Lexer.Next().
 type Lexer struct {
 	input      string
 	tokens     chan Token
@@ -41,8 +65,7 @@ type Lexer struct {
 	width      int
 }
 
-type lActionFn func(l *Lexer) lActionFn
-
+// Instantiates a Lexer from a string
 func NewLexer(input string) *Lexer {
 	return &Lexer{
 		input:  input,
@@ -55,6 +78,11 @@ func NewLexer(input string) *Lexer {
 	}
 }
 
+// Returns the next Token in the string. If no Token are available, it
+// returns an io.EOF error.
+//
+// TODO(tuleu): It should certainly be an internal error instead of
+// io.EOF.
 func (l *Lexer) Next() (Token, error) {
 	for {
 		select {
@@ -78,6 +106,9 @@ const eof rune = 0
 
 // Actions
 
+// Represents a state / action of the internal Lexer state machine.
+type lActionFn func(l *Lexer) lActionFn
+
 func lexHexadecimal(l *Lexer) lActionFn {
 	l.acceptRun(numeric)
 	if l.accept("abcedf") {
@@ -98,7 +129,7 @@ func lexNumberEndCheck(l *Lexer) lActionFn {
 		return l.errorf("Bad number syntax %q", l.current())
 	}
 
-	l.emit(tokValue)
+	l.emit(TokValue)
 
 	return lexWS
 }
@@ -110,9 +141,9 @@ func lexNumber(l *Lexer) lActionFn {
 		asPM = true
 		if l.accept(numeric) == false {
 			if l.current() == "+" {
-				l.emit(tokPlus)
+				l.emit(TokPlus)
 			} else {
-				l.emit(tokMinus)
+				l.emit(TokMinus)
 			}
 			return lexWS
 		}
@@ -153,7 +184,7 @@ func lexNumber(l *Lexer) lActionFn {
 
 func lexIdentifier(l *Lexer) lActionFn {
 	l.acceptRun(alphabetic + numeric + "_")
-	l.emit(tokIdent)
+	l.emit(TokIdent)
 	return lexWS
 }
 
@@ -208,14 +239,14 @@ func registerRuneToken(ru rune, t TokenType) {
 }
 
 func init() {
-	registerRuneToken('+', tokPlus)
-	registerRuneToken('-', tokMinus)
-	registerRuneToken('*', tokMult)
-	registerRuneToken('^', tokPower)
-	registerRuneToken('/', tokDivide)
-	registerRuneToken('(', tokOParen)
-	registerRuneToken(')', tokCParen)
-	registerRuneToken(',', tokComma)
+	registerRuneToken('+', TokPlus)
+	registerRuneToken('-', TokMinus)
+	registerRuneToken('*', TokMult)
+	registerRuneToken('^', TokPower)
+	registerRuneToken('/', TokDivide)
+	registerRuneToken('(', TokOParen)
+	registerRuneToken(')', TokCParen)
+	registerRuneToken(',', TokComma)
 }
 
 // helpers

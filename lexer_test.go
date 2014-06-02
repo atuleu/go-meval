@@ -26,15 +26,15 @@ func CheckAllToken(l *Lexer, tokens []Token, c *C) {
 
 func (s *LexSuite) TestLexNumber(c *C) {
 	tokens := []Token{
-		NewToken(tokValue, "2455"),
-		NewToken(tokValue, "-46"),
-		NewToken(tokValue, "+89e67"),
-		NewToken(tokValue, "+89.46E67"),
-		NewToken(tokValue, "35i"),
-		NewToken(tokValue, "35.46e-67"),
-		NewToken(tokValue, "35.46e+067"),
-		NewToken(tokValue, "0b111001"),
-		NewToken(tokValue, "0xabcdef46"),
+		NewToken(TokValue, "2455"),
+		NewToken(TokValue, "-46"),
+		NewToken(TokValue, "+89e67"),
+		NewToken(TokValue, "+89.46E67"),
+		NewToken(TokValue, "35i"),
+		NewToken(TokValue, "35.46e-67"),
+		NewToken(TokValue, "35.46e+067"),
+		NewToken(TokValue, "0b111001"),
+		NewToken(TokValue, "0xabcdef46"),
 	}
 
 	toLex := ""
@@ -52,22 +52,22 @@ func (s *LexSuite) TestComplexLex(c *C) {
 	toLex := " 45 + - */ +44 -36 (,)foo sqrt()-56e23^"
 
 	tokens := []Token{
-		NewToken(tokValue, "45"),
-		NewToken(tokPlus, "+"),
-		NewToken(tokMinus, "-"),
-		NewToken(tokMult, "*"),
-		NewToken(tokDivide, "/"),
-		NewToken(tokValue, "+44"),
-		NewToken(tokValue, "-36"),
-		NewToken(tokOParen, "("),
-		NewToken(tokComma, ","),
-		NewToken(tokCParen, ")"),
-		NewToken(tokIdent, "foo"),
-		NewToken(tokIdent, "sqrt"),
-		NewToken(tokOParen, "("),
-		NewToken(tokCParen, ")"),
-		NewToken(tokValue, "-56e23"),
-		NewToken(tokPower, "^"),
+		NewToken(TokValue, "45"),
+		NewToken(TokPlus, "+"),
+		NewToken(TokMinus, "-"),
+		NewToken(TokMult, "*"),
+		NewToken(TokDivide, "/"),
+		NewToken(TokValue, "+44"),
+		NewToken(TokValue, "-36"),
+		NewToken(TokOParen, "("),
+		NewToken(TokComma, ","),
+		NewToken(TokCParen, ")"),
+		NewToken(TokIdent, "foo"),
+		NewToken(TokIdent, "sqrt"),
+		NewToken(TokOParen, "("),
+		NewToken(TokCParen, ")"),
+		NewToken(TokValue, "-56e23"),
+		NewToken(TokPower, "^"),
 	}
 
 	CheckAllToken(NewLexer(toLex), tokens, c)

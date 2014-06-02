@@ -85,4 +85,3 @@ func (e *binaryExp) Eval(c Context) (float64, error) {
 	}
 	return e.evaluer(valueLeft, valueRight), nil
 }
-
