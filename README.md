@@ -18,6 +18,6 @@ go get github.com/atuleu/go-meval
 
 Still in alpha release. No complex github issue for that task list
 
-see [roadmap.md]
+see [roadmap](roadmap.md)
 
 # 3. Contribute 
