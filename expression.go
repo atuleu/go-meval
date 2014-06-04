@@ -6,9 +6,8 @@ import (
 	"strings"
 )
 
-
 // Expression can be evaluated to float from a Context
-// 
+//
 // BUG(tuleu): the expression evaluation mechanism is so simple that
 // call loop can be easily implemented !
 type Expression interface {
@@ -27,14 +26,13 @@ type refExp struct {
 	variable string
 }
 
-
 // TODO: This should be resilient to cyclic call ... this is not the
 // case right now
 func (e *refExp) Eval(c Context) (float64, error) {
 	if bad, deps := c.testStack(e); bad == true {
 		deps = append([]string{deps[len(deps)-1]},
 			deps...)
-		return math.NaN(), fmt.Errorf("Got cyclic dependency %s",strings.Join(deps," -> "))
+		return math.NaN(), fmt.Errorf("Got cyclic dependency %s", strings.Join(deps, " -> "))
 	}
 	c.push(e)
 	defer c.pop()
@@ -90,4 +88,28 @@ func (e *binaryExp) Eval(c Context) (float64, error) {
 		return math.NaN(), err
 	}
 	return e.evaluer(valueLeft, valueRight), nil
+}
+
+// NEvaluer is a function that takes a list of float and returns a
+// float
+type NEvaluer func([]float64) float64
+
+type nExp struct {
+	children []Expression
+	card     int
+	evaluer  NEvaluer
+}
+
+func (e *nExp) Eval(c Context) (float64, error) {
+	if len(e.children) != e.card {
+		return math.NaN(), fmt.Errorf("Bad AST, expression expected %d children, got %d", e.card, len(e.children))
+	}
+	values := make([]float64, e.card)
+	for i, exp := range e.children {
+		var err error
+		if values[i], err = exp.Eval(c); err != nil {
+			return math.NaN(), err
+		}
+	}
+	return e.evaluer(values), nil
 }

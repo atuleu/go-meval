@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"math/rand"
 	"strconv"
 )
 
@@ -65,19 +66,25 @@ func (o *opStack) unsafeTop() operator {
 }
 
 type function struct {
-	evaluer unaryEvaluer
+	card    int
+	evaluer NEvaluer
 }
 
 func operatorFromFunction(f function) operator {
 	return operator{
 		oType: opFunction,
-		card:  1,
+		card:  f.card,
 		poper: func(out *outQueue) Expression {
 			//pop from the queue, is done before
-			return &unaryExp{
-				child:   out.unsafePop(),
-				evaluer: f.evaluer,
+			res := &nExp{
+				card:     f.card,
+				children: make([]Expression, f.card),
+				evaluer:  f.evaluer,
 			}
+			for i := 0; i < f.card; i++ {
+				res.children[i] = out.unsafePop()
+			}
+			return res
 		},
 	}
 }
@@ -108,8 +115,14 @@ func registerOperator(t TokenType,
 	}
 }
 
-func registerFunction(name string, evaluer unaryEvaluer) {
-	functions[name] = function{evaluer: evaluer}
+// RegisterFunction register a new function with the given
+// cardinality. The list of float passed to the evaluer function is
+// asserted to be cardinatily
+func RegisterFunction(name string, cardinality uint, evaluer NEvaluer) {
+	functions[name] = function{
+		card:    int(cardinality),
+		evaluer: evaluer,
+	}
 }
 
 func init() {
@@ -119,18 +132,21 @@ func init() {
 	registerOperator(TokDivide, 3, true, func(a float64, b float64) float64 { return a / b })
 	registerOperator(TokPower, 4, false, func(a float64, b float64) float64 { return math.Pow(a, b) })
 
-	registerFunction("sin", func(a float64) float64 { return math.Sin(a) })
-	registerFunction("cos", func(a float64) float64 { return math.Cos(a) })
-	registerFunction("tan", func(a float64) float64 { return math.Tan(a) })
-	registerFunction("asin", func(a float64) float64 { return math.Asin(a) })
-	registerFunction("acos", func(a float64) float64 { return math.Acos(a) })
-	registerFunction("atan", func(a float64) float64 { return math.Atan(a) })
-	registerFunction("sqrt", func(a float64) float64 { return math.Sqrt(a) })
-	registerFunction("exp", func(a float64) float64 { return math.Exp(a) })
-	registerFunction("ln", func(a float64) float64 { return math.Log(a) })
-	registerFunction("log10", func(a float64) float64 { return math.Log10(a) })
-	registerFunction("ceil", func(a float64) float64 { return math.Ceil(a) })
-	registerFunction("floor", func(a float64) float64 { return math.Floor(a) })
+	RegisterFunction("pi", 0, func(a []float64) float64 { return math.Pi })
+	RegisterFunction("rand", 0, func(a []float64) float64 { return rand.Float64() })
+
+	RegisterFunction("sin", 1, func(a []float64) float64 { return math.Sin(a[0]) })
+	RegisterFunction("cos", 1, func(a []float64) float64 { return math.Cos(a[0]) })
+	RegisterFunction("tan", 1, func(a []float64) float64 { return math.Tan(a[0]) })
+	RegisterFunction("asin", 1, func(a []float64) float64 { return math.Asin(a[0]) })
+	RegisterFunction("acos", 1, func(a []float64) float64 { return math.Acos(a[0]) })
+	RegisterFunction("atan", 1, func(a []float64) float64 { return math.Atan(a[0]) })
+	RegisterFunction("sqrt", 1, func(a []float64) float64 { return math.Sqrt(a[0]) })
+	RegisterFunction("exp", 1, func(a []float64) float64 { return math.Exp(a[0]) })
+	RegisterFunction("ln", 1, func(a []float64) float64 { return math.Log(a[0]) })
+	RegisterFunction("log10", 1, func(a []float64) float64 { return math.Log10(a[0]) })
+	RegisterFunction("ceil", 1, func(a []float64) float64 { return math.Ceil(a[0]) })
+	RegisterFunction("floor", 1, func(a []float64) float64 { return math.Floor(a[0]) })
 
 }
 
@@ -168,7 +184,7 @@ func buildAST(input string) (Expression, error) {
 		if t.Type == TokValue {
 			if value, err := strconv.ParseFloat(t.Value, 64); err != nil {
 				return nil, err
-			} else { 
+			} else {
 				output.push(&valueExp{value: value})
 			}
 			continue

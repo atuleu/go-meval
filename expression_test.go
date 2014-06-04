@@ -6,12 +6,12 @@ import (
 	"math"
 )
 
-type ExprSuite struct{
+type ExprSuite struct {
 	c *MapContext
 }
 
 var _ = Suite(&ExprSuite{
-	c : NewMapContext(),
+	c: NewMapContext(),
 })
 
 type ExpResult struct {
@@ -24,8 +24,8 @@ func (e ExpResult) String() string {
 }
 
 func (s *ExprSuite) SetUpSuite(c *C) {
-	err := s.c.CompileAndAdd("foo","3.0")
-	c.Assert(err,IsNil,Commentf("Got error at SetUp: %s",err))
+	err := s.c.CompileAndAdd("foo", "3.0")
+	c.Assert(err, IsNil, Commentf("Got error at SetUp: %s", err))
 }
 
 func (s *ExprSuite) TestBasicEval(c *C) {
@@ -65,12 +65,11 @@ func (s *ExprSuite) TestUnfoundVariableEvaluation(c *C) {
 
 }
 
-
 func (s *ExprSuite) TestCyclicEvaluationNotPermitted(c *C) {
 	//create a cycle of references
-	s.c.CompileAndAdd("bar","sqrt(baz)")
-	s.c.CompileAndAdd("baz","foobar * foobar")
-	s.c.CompileAndAdd("foobar","bar ^ 2.0")
+	s.c.CompileAndAdd("bar", "sqrt(baz)")
+	s.c.CompileAndAdd("baz", "foobar * foobar")
+	s.c.CompileAndAdd("foobar", "bar ^ 2.0")
 	//we should clean in any case
 	defer func() {
 		s.c.Delete("bar")
@@ -78,17 +77,14 @@ func (s *ExprSuite) TestCyclicEvaluationNotPermitted(c *C) {
 		s.c.Delete("foobar")
 	}()
 
-	exp,err := Compile("bar + 42.0")
-	c.Assert(err,IsNil,Commentf("Got compilation error %s",err))
-	res,err := exp.Eval(s.c)
-	c.Assert(err,Not(IsNil))
-	c.Check(err.Error(),Equals,"Got cyclic dependency bar -> baz -> foobar -> bar")
-	c.Check(math.IsNaN(res),Equals,true)
+	exp, err := Compile("bar + 42.0")
+	c.Assert(err, IsNil, Commentf("Got compilation error %s", err))
+	res, err := exp.Eval(s.c)
+	c.Assert(err, Not(IsNil))
+	c.Check(err.Error(), Equals, "Got cyclic dependency bar -> baz -> foobar -> bar")
+	c.Check(math.IsNaN(res), Equals, true)
 
 }
-
-
-
 
 func ExampleExpression_basic() {
 	expr, err := Compile("1.0 + 2.0")
