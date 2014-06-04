@@ -6,30 +6,12 @@ import (
 	"math"
 )
 
-// We create a context
-// It should embedded a CallStack
-type MockContext struct {
-	CallStack
-	dictionnary map[string]Expression
-}
-
-func (c *MockContext) GetExpression(name string) (Expression, error) {
-	if e,ok := c.dictionnary[name]; ok == true {
-		return e,nil
-	}
-	return nil, fmt.Errorf("%s is not present in context", name)
-}
-
 type ExprSuite struct{
-	c *MockContext
+	c *MapContext
 }
 
 var _ = Suite(&ExprSuite{
-	c : &MockContext{
-		dictionnary: map[string]Expression{
-			"foo": &valueExp{3.0},
-		},
-	},
+	c : NewMapContext(),
 })
 
 type ExpResult struct {
@@ -39,6 +21,11 @@ type ExpResult struct {
 
 func (e ExpResult) String() string {
 	return fmt.Sprintf(" %s == %f", e.Input, e.Result)
+}
+
+func (s *ExprSuite) SetUpSuite(c *C) {
+	err := s.c.CompileAndAdd("foo","3.0")
+	c.Assert(err,IsNil,Commentf("Got error at SetUp: %s",err))
 }
 
 func (s *ExprSuite) TestBasicEval(c *C) {
@@ -81,14 +68,14 @@ func (s *ExprSuite) TestUnfoundVariableEvaluation(c *C) {
 
 func (s *ExprSuite) TestCyclicEvaluationNotPermitted(c *C) {
 	//create a cycle of references
-	s.c.dictionnary["bar"],_ = Compile("sqrt(baz)")
-	s.c.dictionnary["baz"],_ = Compile("foobar^2.0")
-	s.c.dictionnary["foobar"],_ = Compile("bar * bar")
+	s.c.CompileAndAdd("bar","sqrt(baz)")
+	s.c.CompileAndAdd("baz","foobar * foobar")
+	s.c.CompileAndAdd("foobar","bar ^ 2.0")
 	//we should clean in any case
 	defer func() {
-		delete(s.c.dictionnary,"bar")
-		delete(s.c.dictionnary,"baz")
-		delete(s.c.dictionnary,"foobar")
+		s.c.Delete("bar")
+		s.c.Delete("baz")
+		s.c.Delete("foobar")
 	}()
 
 	exp,err := Compile("bar + 42.0")

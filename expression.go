@@ -6,48 +6,6 @@ import (
 	"strings"
 )
 
-type callStack interface {
-	push(e *refExp)
-	pop()
-	testStack(e *refExp) (bool,[]string)
-}
-
-// A Context is a kind of dictionnary of expression. You can pass it
-// to Eval
-type Context interface {
-	// Returns an expression from a given name.
-	GetExpression(string) (Expression, error)
-	callStack
-}
-
-type CallStack struct {
-	stack []*refExp
-}
-
-func (c *CallStack)push(e *refExp) {
-	c.stack = append(c.stack,e)
-}
-
-func (c *CallStack)pop() {
-	if len(c.stack) == 0 {
-		panic("Should never happen")
-	}
-	c.stack = c.stack[0:len(c.stack)-1]
-}
-
-func (c *CallStack)testStack(e *refExp) (bool, []string) {
-	res := false
-	var deps []string = nil
-	for _,ee := range c.stack {
-		if e == ee {
-			res = true
-		}
-		if res == true {
-			deps = append(deps,ee.variable)
-		}
-	}
-	return res,deps
-}
 
 // An expression can be evaluated
 // 

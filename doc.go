@@ -30,6 +30,9 @@ context. See #Expression basic example.
 
 Context
 
+One can use context, in order for your expression to refer to others,
+aka variable.
+
 TODO(tuleu): document a context and how to use it
 
 TODO(tuleu) package global example
