@@ -168,7 +168,7 @@ func buildAST(input string) (Expression, error) {
 		if t.Type == TokValue {
 			if value, err := strconv.ParseFloat(t.Value, 64); err != nil {
 				return nil, err
-			} else {
+			} else { 
 				output.push(&valueExp{value: value})
 			}
 			continue

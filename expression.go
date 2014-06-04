@@ -7,7 +7,7 @@ import (
 )
 
 
-// An expression can be evaluated
+// Expression can be evaluated to float from a Context
 // 
 // BUG(tuleu): the expression evaluation mechanism is so simple that
 // call loop can be easily implemented !

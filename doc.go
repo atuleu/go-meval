@@ -16,7 +16,7 @@
 // <http://www.gnu.org/licenses/>.
 
 /*
-Package go-meval provides a mathematical expresison parser. It can
+Package meval provides a mathematical expresison parser. It can
 parse mathematical expresison into an AST and evaluate it. It also
 support the concept of variable through Context : An Expression can
 refer any other expression defined in a Context. For simple case use,

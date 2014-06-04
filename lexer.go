@@ -8,29 +8,29 @@ import (
 	"unicode/utf8"
 )
 
-// Type of a Token
+// TokenType represent the type of a Token
 type TokenType int
 
 const (
-	// '+' sign
+	// TokPlus is a '+' sign
 	TokPlus TokenType = iota
-	// '-' sign
+	// TokMinus is a '-' sign
 	TokMinus
-	// '*' sign
+	// TokMult is a '*' sign
 	TokMult
-	// '/' sign
+	// TokDivide is a '/' sign
 	TokDivide
-	// '^'
+	// TokPower is a '^'
 	TokPower
-	// '(' sign
+	// TokOParen is a '(' sign
 	TokOParen
-	// '')' sign
+	// TokCParen is a ')' sign
 	TokCParen
-	// ','
+	// TokComma is a ','
 	TokComma
-	// '[a-zA-Z0-9_]+ regex
+	// TokIdent is a '[a-zA-Z0-9_]+ regex
 	TokIdent
-	// A floating number value
+	// TokValue is a a floating number value
 	TokValue
 )
 
@@ -46,7 +46,7 @@ type Token struct {
 	Value string
 }
 
-// Creates a new token
+// NewToken creates a new Token
 func NewToken(t TokenType, value string) Token {
 	return Token{Type: t, Value: value}
 }
@@ -65,7 +65,7 @@ type Lexer struct {
 	width      int
 }
 
-// Instantiates a Lexer from a string
+// NewLexer instantiates a Lexer from a string
 func NewLexer(input string) *Lexer {
 	return &Lexer{
 		input:  input,
@@ -78,8 +78,8 @@ func NewLexer(input string) *Lexer {
 	}
 }
 
-// Returns the next Token in the string. If no Token are available, it
-// returns an io.EOF error.
+// Next returns the next Token in the string. If no Token are
+// available, it returns an io.EOF error.
 //
 // TODO(tuleu): It should certainly be an internal error instead of
 // io.EOF.

@@ -15,7 +15,8 @@ type Context interface {
 	GetExpression(string) (Expression, error)
 	callStack
 }
-
+// CallStack is meant to be embedded in any type that want to
+// implement Context
 type CallStack struct {
 	stack []*refExp
 }
@@ -33,7 +34,7 @@ func (c *CallStack)pop() {
 
 func (c *CallStack)testStack(e *refExp) (bool, []string) {
 	res := false
-	var deps []string = nil
+	var deps []string
 	for _,ee := range c.stack {
 		if e == ee {
 			res = true
@@ -45,7 +46,8 @@ func (c *CallStack)testStack(e *refExp) (bool, []string) {
 	return res,deps
 }
 
-// Represents the most simple context
+// MapContext represents the most simple context, aka a dictionnary of
+// expressions.
 type MapContext struct {
 	// In order to be a Context, one should embed a CallStack
 	CallStack
@@ -53,11 +55,13 @@ type MapContext struct {
 	exprs map[string]Expression
 }
 
-// Creates a MapContext
+// NewMapContext creates a MapContext
 func NewMapContext() *MapContext {
 	return &MapContext{exprs: make(map[string]Expression)}
 }
 
+
+// GetExpression returns an Expression storred in the MapContext, or nil
 func (c * MapContext) GetExpression(name string) (Expression,error) {
 	if e,ok := c.exprs[name]; ok == true {
 		return e,nil
@@ -65,25 +69,27 @@ func (c * MapContext) GetExpression(name string) (Expression,error) {
 	return nil,fmt.Errorf("Could not find %s in MapContext",name)
 }
 
-// Adds a new expression to the MapContext
+// Add adds a new expression to the MapContext
 func (c *MapContext) Add(name string, e Expression) {
 	c.exprs[name] = e
 }
 
 
-// Compiles and add a new expression. It returns the same errors than
-// Compile()
+// CompileAndAdd compiles and adds a new expression to the MapContext. 
+//
+// It returns the same errors than Compile()
 func (c *MapContext) CompileAndAdd(name, input string) error {
 	if e,err := Compile(input); err != nil {
 		return err
 	} else {
 		c.Add(name,e)
-		return nil
 	}
+	return nil
 }
 
 
-// Deletes the expression from the MapContext
+// Delete deletes the given expression from the MapContext if it
+// exists.
 func (c *MapContext) Delete(name string) {
 	delete(c.exprs,name)
 }
