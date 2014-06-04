@@ -9,5 +9,5 @@ Roadmap is so simple as a TODO list :
   - [ ] Adds iterface to add unary / binary operator
 - [ ] Improves error reporting using custom error type
 - [ ] Documentation and examples
-- [ ] Avoid expression loop call cycle
+- [x] Avoid expression loop call cycle
 

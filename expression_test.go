@@ -6,18 +6,31 @@ import (
 	"math"
 )
 
-type MockContext struct{}
+// We create a context
+// It should embedded a CallStack
+type MockContext struct {
+	CallStack
+	dictionnary map[string]Expression
+}
 
 func (c *MockContext) GetExpression(name string) (Expression, error) {
-	if name == "foo" {
-		return &valueExp{3.0}, nil
+	if e,ok := c.dictionnary[name]; ok == true {
+		return e,nil
 	}
 	return nil, fmt.Errorf("%s is not present in context", name)
 }
 
-type ExprSuite struct{}
+type ExprSuite struct{
+	c *MockContext
+}
 
-var _ = Suite(&ExprSuite{})
+var _ = Suite(&ExprSuite{
+	c : &MockContext{
+		dictionnary: map[string]Expression{
+			"foo": &valueExp{3.0},
+		},
+	},
+})
 
 type ExpResult struct {
 	Result float64
@@ -47,7 +60,7 @@ func (s *ExprSuite) TestBasicEval(c *C) {
 		if err != nil {
 			continue
 		}
-		res, err := ee.Eval(&MockContext{})
+		res, err := ee.Eval(s.c)
 		c.Check(err, IsNil, Commentf("[%d: %s]: got error at evaluation: %s", i, e, err))
 		if err != nil {
 			continue
@@ -59,11 +72,36 @@ func (s *ExprSuite) TestBasicEval(c *C) {
 func (s *ExprSuite) TestUnfoundVariableEvaluation(c *C) {
 	exp, err := Compile("does * not + exist")
 	c.Assert(err, IsNil)
-	res, err := exp.Eval(&MockContext{})
+	res, err := exp.Eval(s.c)
 	c.Check(err, Not(IsNil))
 	c.Check(math.IsNaN(res), Equals, true)
 
 }
+
+
+func (s *ExprSuite) TestCyclicEvaluationNotPermitted(c *C) {
+	//create a cycle of references
+	s.c.dictionnary["bar"],_ = Compile("sqrt(baz)")
+	s.c.dictionnary["baz"],_ = Compile("foobar^2.0")
+	s.c.dictionnary["foobar"],_ = Compile("bar * bar")
+	//we should clean in any case
+	defer func() {
+		delete(s.c.dictionnary,"bar")
+		delete(s.c.dictionnary,"baz")
+		delete(s.c.dictionnary,"foobar")
+	}()
+
+	exp,err := Compile("bar + 42.0")
+	c.Assert(err,IsNil,Commentf("Got compilation error %s",err))
+	res,err := exp.Eval(s.c)
+	c.Assert(err,Not(IsNil))
+	c.Check(err.Error(),Equals,"Got cyclic dependency bar -> baz -> foobar -> bar")
+	c.Check(math.IsNaN(res),Equals,true)
+
+}
+
+
+
 
 func ExampleExpression_basic() {
 	expr, err := Compile("1.0 + 2.0")
