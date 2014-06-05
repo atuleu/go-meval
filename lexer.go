@@ -136,9 +136,9 @@ func lexNumberEndCheck(l *Lexer) lActionFn {
 
 func lexNumber(l *Lexer) lActionFn {
 	l.backup()
-	var asPM = false
+	hasPM := false
 	if l.accept("+-") {
-		asPM = true
+		hasPM = true
 		if l.accept(numeric) == false {
 			if l.current() == "+" {
 				l.emit(TokPlus)
@@ -146,19 +146,21 @@ func lexNumber(l *Lexer) lActionFn {
 				l.emit(TokMinus)
 			}
 			return lexWS
+		} else {
+			l.backup()
 		}
 	}
 
 	if l.accept("0") {
 		if l.accept("xX") {
-			if asPM == true {
+			if hasPM == true {
 				return l.errorf("Bad number syntax %q", l.current())
 			}
 			return lexHexadecimal
 		}
 
 		if l.accept("bB") {
-			if asPM == true {
+			if hasPM == true {
 				return l.errorf("Bad number syntax %q", l.current())
 			}
 			return lexBinary

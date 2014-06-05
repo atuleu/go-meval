@@ -56,8 +56,9 @@ type ValueAndError struct {
 func (s *LexSuite) TestReportBadNumberSyntax(c * C) {
 	tests := []ValueAndError{ 
 		{"+0xA234", "+0x"},
-		{"+0b0", "+0b"},
-		{"0xAbe32","0xAb" },
+		{"-0b0", "-0b"},
+		{"0B02", "0B02"},
+		{"0xAbE","0xAb" },
 	}
 	for _,t := range tests {
 		l := NewLexer(t.value)
@@ -65,7 +66,6 @@ func (s *LexSuite) TestReportBadNumberSyntax(c * C) {
 		if c.Check(err,Not(IsNil)) == false {
 			continue
 		}
-
 		c.Check(err.Error(),Equals,fmt.Sprintf("Bad number syntax %q",t.error))
 	}
 }
