@@ -31,7 +31,7 @@ func (s *ExprSuite) SetUpSuite(c *C) {
 func (s *ExprSuite) TestBasicEval(c *C) {
 
 	exps := []ExpResult{
-		{0.0, "0.0"},
+		{0.0, "0.00"},
 		{4.0, "1.0 + 2.0 + 1.0"},
 		{1.12345, "1.12345"},
 		{11.0, "1.0 + 10.0"},
@@ -153,4 +153,28 @@ func ExampleExpression_basic() {
 type FunctionAndResult struct {
 	input  string
 	result float64
+}
+
+func (s *ExprSuite) TestCanGenerateRandom(c *C) {
+	e, err := Compile("rand()")
+	c.Assert(err, IsNil, Commentf("Got compilation error %s", err))
+	res, err := e.Eval(nil)
+	c.Assert(err, IsNil, Commentf("Got evaluation error %s", err))
+	c.Check(res >= 0, Equals, true)
+	c.Check(res < 1, Equals, true)
+}
+
+func (s *ExprSuite) TestBadASTError(c *C) {
+	//This is more an internal error, so we modify an existing AST to
+	//add a new argument to a nExp
+	e, err := Compile("sin(1.0)")
+
+	c.Assert(err, IsNil)
+	ee, ok := e.(*nExp)
+	c.Assert(ok, Equals, true, Commentf("A function is evaluated as an nExp"))
+	ee.children = append(ee.children, &valueExp{3.0})
+
+	_, err = e.Eval(nil)
+	c.Assert(err, Not(IsNil))
+	c.Check(err.Error(), Equals, "Bad AST, expression expected 1 children, got 2")
 }
