@@ -110,7 +110,9 @@ type CompileError struct {
 }
 
 func (s *ExprSuite) TestCompilationError(c *C) {
-	registerRuneToken('%', TokPlus+100)
+	// this is for internal stuff
+	err := registerOpToken("%", TokPlus+100)
+	c.Assert(err, IsNil)
 	tests := []CompileError{
 		{"( 2.0 ))", "Mismatched parenthese in ( 2.0 ))"},
 		{"(( foo )", "Mismatched parenthese in (( foo )"},
@@ -199,4 +201,51 @@ func (s *ExprSuite) TestBug_BadStrconvError(c *C) {
 		c.Assert(err, Not(IsNil))
 		c.Check(err.Error(), Equals, "Internal Lexer error. Lexer gave us value "+n+", but strconv.Float64 cannot convert it : strconv.ParseFloat: parsing \""+n+"\": invalid syntax")
 	}
+}
+
+func (s *ExprSuite) TestCanRegisterOperator(c *C) {
+	err := RegisterOperator("<", 10, false, func(a []float64) float64 {
+		if a[0] < a[1] {
+			return 1.0
+		} else {
+			return 0.0
+		}
+	})
+	c.Assert(err, IsNil)
+	defer delete(operators, tokUserStart)
+
+	err = RegisterOperator(">", 10, false, func(a []float64) float64 {
+		if a[0] > a[1] {
+			return 1.0
+		} else {
+			return 0.0
+		}
+	})
+
+	c.Assert(err, IsNil)
+	defer delete(operators, tokUserStart+1)
+
+	// Here the precedence should make sure that - is popped out
+	e, err := Compile("1.0 - 0.6 < 0.5")
+	c.Assert(err, IsNil)
+
+	res, err := e.Eval(nil)
+	c.Assert(err, IsNil)
+
+	c.Check(res, Equals, 1.0)
+
+	err = RegisterOperator(">a", 10, false, func(a []float64) float64 { return 0 })
+
+	c.Assert(err, Not(IsNil))
+	c.Check(err.Error(), Equals, "Invalid operator syntax \">a\"")
+
+	didPanic := false
+	defer func() {
+		if r := recover(); r != nil {
+			didPanic = true
+		}
+		c.Check(didPanic, Equals, true)
+	}()
+
+	MustRegisterOperator(">a", 10, false, func(a []float64) float64 { return 0 })
 }

@@ -101,3 +101,47 @@ func (s *LexSuite) TestReportUnknownToken(c *C) {
 	c.Assert(err, Not(IsNil))
 	c.Check(err.Error(), Equals, "Got unexpected rune @")
 }
+
+func (s *LexSuite) TestShouldForbidInvalidOperatorToken(c *C) {
+	err := registerOpToken("aa", tokUserStart)
+	c.Assert(err, Not(IsNil))
+	c.Check(err.Error(), Equals, "Invalid operator syntax \"aa\"")
+
+	hasPanic := false
+	defer func() {
+		if r := recover(); r != nil {
+			hasPanic = true
+			c.Check(r, Equals, "Cannot register operator token : Invalid operator syntax \"aa\"")
+		}
+
+		c.Check(hasPanic, Equals, true)
+
+	}()
+
+	mustRegisterOpToken("aa", tokUserStart)
+}
+
+func (s *LexSuite) TestReportsInvalidTokenOperator(c *C) {
+	// Adds a special token for @@
+	err := registerOpToken("@@", tokUserStart)
+	c.Assert(err, IsNil, Commentf("Cannot register valid token @@ : %s", err))
+
+	l := NewLexer("@@ @@@@ @")
+
+	t, err := l.Next()
+	c.Assert(err, IsNil)
+	c.Check(t.Type, Equals, tokUserStart)
+
+	t, err = l.Next()
+	c.Assert(err, IsNil)
+	c.Check(t.Type, Equals, tokUserStart)
+
+	t, err = l.Next()
+	c.Assert(err, IsNil)
+	c.Check(t.Type, Equals, tokUserStart)
+
+	t, err = l.Next()
+	c.Assert(err, Not(IsNil))
+	c.Check(err.Error(), Equals, "Invalid token \"@\" found")
+
+}

@@ -3,6 +3,7 @@ package meval
 import (
 	"fmt"
 	"io"
+	"regexp"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -32,6 +33,7 @@ const (
 	TokIdent
 	// TokValue is a a floating number value
 	TokValue
+	tokUserStart
 )
 
 // A Token represent a lexed string
@@ -189,6 +191,30 @@ func lexIdentifier(l *Lexer) lActionFn {
 	return lexWS
 }
 
+func lexOperator(l *Lexer) lActionFn {
+	// This function is tricky. we should accept the largest operator
+	// found, or split it, as '()' should not be considered a single
+	// bad token, but two good
+	var action lActionFn = nil
+	var savePos int
+	for {
+		if cAction, ok := operatorToken[l.current()]; ok == true {
+			action = cAction
+			savePos = l.pos
+		}
+
+		if l.accept(opTokenAccept) == false {
+			break
+		}
+	}
+	if action == nil {
+		return l.errorf("Invalid token %q found", l.current())
+	}
+	l.pos = savePos
+	return action
+
+}
+
 func lexWS(l *Lexer) lActionFn {
 	var ru rune
 	for {
@@ -215,10 +241,8 @@ func lexWS(l *Lexer) lActionFn {
 		return lexIdentifier
 	}
 
-	//check for runes
-	ru = l.next() //we know it is not eof
-	if action, ok := runeToken[ru]; ok == true {
-		return action
+	if l.accept(opTokenAccept) {
+		return lexOperator
 	}
 
 	return l.errorf("Got unexpected rune %c", ru)
@@ -230,24 +254,53 @@ var numeric = "0123456789"
 
 var alphabetic = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-var runeToken = make(map[rune]lActionFn)
+var operatorToken = make(map[string]lActionFn)
 
-func registerRuneToken(ru rune, t TokenType) {
-	runeToken[ru] = func(l *Lexer) lActionFn {
+var opRegexp = regexp.MustCompile(`^[^a-zA-Z0-9_\s]+$`)
+
+var opTokenAccept string = ""
+
+func registerOpToken(opTok string, t TokenType) error {
+	if opRegexp.MatchString(opTok) == false {
+		return fmt.Errorf("Invalid operator syntax %q", opTok)
+	}
+
+	// for each rune in the string, we add it to the opTokenAccept
+	// string if not there
+	for i := 0; i < len(opTok); i++ {
+		//decode by rune
+		ru, width := utf8.DecodeRuneInString(opTok[i:])
+		i += width
+
+		if strings.IndexRune(opTokenAccept, ru) == -1 {
+			//not in test string
+			opTokenAccept += string(ru)
+		}
+	}
+
+	operatorToken[opTok] = func(l *Lexer) lActionFn {
 		l.emit(t)
 		return lexWS
+	}
+	return nil
+}
+
+func mustRegisterOpToken(opTok string, t TokenType) {
+	if err := registerOpToken(opTok, t); err != nil {
+		panic("Cannot register operator token : " + err.Error())
 	}
 }
 
 func init() {
-	registerRuneToken('+', TokPlus)
-	registerRuneToken('-', TokMinus)
-	registerRuneToken('*', TokMult)
-	registerRuneToken('^', TokPower)
-	registerRuneToken('/', TokDivide)
-	registerRuneToken('(', TokOParen)
-	registerRuneToken(')', TokCParen)
-	registerRuneToken(',', TokComma)
+	//Private Token initialization
+	mustRegisterOpToken("+", TokPlus)
+	mustRegisterOpToken("-", TokMinus)
+	mustRegisterOpToken("*", TokMult)
+	mustRegisterOpToken("^", TokPower)
+	mustRegisterOpToken("/", TokDivide)
+	mustRegisterOpToken("(", TokOParen)
+	mustRegisterOpToken(")", TokCParen)
+	mustRegisterOpToken(",", TokComma)
 }
 
 // helpers

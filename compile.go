@@ -131,6 +131,34 @@ func RegisterFunction(name string, cardinality uint, evaluer NEvaluer) {
 	}
 }
 
+func RegisterOperator(opToken string,
+	precedence int,
+	leftAssociative bool,
+	evaluer NEvaluer) error {
+	if err := registerOpToken(opToken, nextUserOperator); err != nil {
+		return err
+	}
+	registerOperator(nextUserOperator,
+		opToken,
+		precedence,
+		leftAssociative,
+		func(a, b float64) float64 { return evaluer([]float64{a, b}) })
+
+	nextUserOperator += 1
+	return nil
+}
+
+func MustRegisterOperator(opToken string,
+	precedence int,
+	leftAssociative bool,
+	evaluer NEvaluer) {
+	if err := RegisterOperator(opToken, precedence, leftAssociative, evaluer); err != nil {
+		panic("Cannot register operator " + opToken + " : " + err.Error())
+	}
+}
+
+var nextUserOperator TokenType = tokUserStart
+
 func init() {
 	registerOperator(TokPlus, "+", 2, true, func(a float64, b float64) float64 { return a + b })
 	registerOperator(TokMinus, "-", 2, true, func(a float64, b float64) float64 { return a - b })
