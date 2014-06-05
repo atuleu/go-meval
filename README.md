@@ -2,7 +2,7 @@ go-meval
 ========
 
 [![Build Status](https://drone.io/github.com/atuleu/go-meval/status.png)](https://drone.io/github.com/atuleu/go-meval/latest) 
-[![Coverage Status](https://coveralls.io/repos/atuleu/go-meval/badge.png)](https://coveralls.io/r/atuleu/go-meval)
+[![Coverage Status](https://coveralls.io/repos/atuleu/go-meval/badge.png?branch=master)](https://coveralls.io/r/atuleu/go-meval?branch=master)
 
 
 A mathematical expression  parser / evaluator in go.
