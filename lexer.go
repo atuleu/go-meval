@@ -220,7 +220,7 @@ func lexWS(l *Lexer) lActionFn {
 		return action
 	}
 
-	return l.errorf("Got unexpected run %c", ru)
+	return l.errorf("Got unexpected rune %c", ru)
 }
 
 // static data

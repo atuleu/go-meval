@@ -72,3 +72,11 @@ func (s *LexSuite) TestComplexLex(c *C) {
 
 	CheckAllToken(NewLexer(toLex), tokens, c)
 }
+
+
+func (s* LexSuite) TestReportUnknownToken(c *C) {
+	l := NewLexer("@")
+	_,err := l.Next()
+	c.Assert(err,Not(IsNil))
+	c.Check(err.Error(),Equals,"Got unexpected rune @")
+}
