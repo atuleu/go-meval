@@ -1,6 +1,8 @@
 go-meval
 ========
 
+[![Build Status](https://drone.io/github.com/atuleu/go-meval/status.png)](https://drone.io/github.com/atuleu/go-meval/latest) [coverage report](https://drone.io/github.com/atuleu/go-meval/files/coverage.html)
+
 A mathematical expression  parser / evaluator in go.
 
 
