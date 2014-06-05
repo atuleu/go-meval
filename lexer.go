@@ -287,11 +287,11 @@ func (l *Lexer) backup() {
 	l.pos -= l.width
 }
 
-func (l *Lexer) peek() rune {
+/*func (l *Lexer) peek() rune {
 	ru := l.next()
 	l.backup()
 	return ru
-}
+}*/
 
 func (l *Lexer) ignore() {
 	l.start = l.pos
