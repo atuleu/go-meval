@@ -99,7 +99,6 @@ func (l *Lexer) Next() (Token, error) {
 			l.action = l.action(l)
 		}
 	}
-	panic("Should not be reached")
 }
 
 const eof rune = 0
