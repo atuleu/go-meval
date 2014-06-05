@@ -164,6 +164,8 @@ func (s *ExprSuite) TestCanGenerateRandom(c *C) {
 	c.Check(res < 1, Equals, true)
 }
 
+// Theses tests are more for internal check coverage
+
 func (s *ExprSuite) TestBadASTError(c *C) {
 	//This is more an internal error, so we modify an existing AST to
 	//add a new argument to a nExp
@@ -177,4 +179,24 @@ func (s *ExprSuite) TestBadASTError(c *C) {
 	_, err = e.Eval(nil)
 	c.Assert(err, Not(IsNil))
 	c.Check(err.Error(), Equals, "Bad AST, expression expected 1 children, got 2")
+}
+
+// This a know bug, the lexer returns a valid hexadecimal number, that
+// cannot be parsed as a float
+
+func (s *ExprSuite) TestBug_BadStrconvError(c *C) {
+	//Normallly all parsed number shouldbe able to be parsed by strconv
+
+	badNumbers := []string{
+		"0x12",
+		"0b001",
+		"0XAB",
+		"0B11001",
+	}
+
+	for _, n := range badNumbers {
+		_, err := Compile(n)
+		c.Assert(err, Not(IsNil))
+		c.Check(err.Error(), Equals, "Internal Lexer error. Lexer gave us value "+n+", but strconv.Float64 cannot convert it : strconv.ParseFloat: parsing \""+n+"\": invalid syntax")
+	}
 }

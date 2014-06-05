@@ -56,21 +56,6 @@ func (e *valueExp) Eval(Context) (float64, error) {
 	return e.value, nil
 }
 
-type unaryEvaluer func(float64) float64
-
-type unaryExp struct {
-	child   Expression
-	evaluer unaryEvaluer
-}
-
-func (e *unaryExp) Eval(c Context) (float64, error) {
-	value, err := e.child.Eval(c)
-	if err != nil {
-		return math.NaN(), err
-	}
-	return e.evaluer(value), nil
-}
-
 type binaryEvaluer func(float64, float64) float64
 
 type binaryExp struct {

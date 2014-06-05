@@ -192,7 +192,7 @@ func buildAST(input string) (Expression, error) {
 
 		if t.Type == TokValue {
 			if value, err := strconv.ParseFloat(t.Value, 64); err != nil {
-				return nil, err
+				return nil, fmt.Errorf("Internal Lexer error. Lexer gave us value %s, but strconv.Float64 cannot convert it : %s", t.Value, err)
 			} else {
 				output.push(&valueExp{value: value})
 			}
