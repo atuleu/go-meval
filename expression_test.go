@@ -60,9 +60,14 @@ func (s *ExprSuite) TestUnfoundVariableEvaluation(c *C) {
 	exp, err := Compile("does * not + exist")
 	c.Assert(err, IsNil)
 	res, err := exp.Eval(s.c)
-	c.Check(err, Not(IsNil))
+	c.Assert(err, Not(IsNil))
+	c.Check(err.Error(),Equals,"Could not find 'does' in MapContext")
 	c.Check(math.IsNaN(res), Equals, true)
 
+	res, err =  exp.Eval(nil)
+	c.Assert(err,Not(IsNil))
+	c.Check(err.Error(),Equals,"'does' referenced, but no Context providen")
+	c.Check(math.IsNaN(res), Equals, true)
 }
 
 func (s *ExprSuite) TestCyclicEvaluationNotPermitted(c *C) {

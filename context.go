@@ -66,7 +66,7 @@ func (c *MapContext) GetExpression(name string) (Expression, error) {
 	if e, ok := c.exprs[name]; ok == true {
 		return e, nil
 	}
-	return nil, fmt.Errorf("Could not find %s in MapContext", name)
+	return nil, fmt.Errorf("Could not find '%s' in MapContext", name)
 }
 
 // Add adds a new expression to the MapContext

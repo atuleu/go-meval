@@ -29,6 +29,11 @@ type refExp struct {
 // TODO: This should be resilient to cyclic call ... this is not the
 // case right now
 func (e *refExp) Eval(c Context) (float64, error) {
+	if c == nil {
+		return math.NaN(), fmt.Errorf("'%s' referenced, but no Context providen",
+			e.variable)
+	}
+
 	if bad, deps := c.testStack(e); bad == true {
 		deps = append([]string{deps[len(deps)-1]},
 			deps...)
@@ -36,10 +41,6 @@ func (e *refExp) Eval(c Context) (float64, error) {
 	}
 	c.push(e)
 	defer c.pop()
-	if c == nil {
-		return math.NaN(), fmt.Errorf("Variable %s referenced, but no Context providen",
-			e.variable)
-	}
 	expr, err := c.GetExpression(e.variable)
 	if err != nil {
 		return math.NaN(), err
