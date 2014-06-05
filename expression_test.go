@@ -54,6 +54,7 @@ func (s *ExprSuite) TestBasicEval(c *C) {
 		{2.0, "ceil(1.5)"},
 		{1.0, "floor(1.5)"},
 		{math.Pi / 4, "atan2(1.0,1.0)"},
+		{math.Pi / 4, "pi() / 4"},
 	}
 
 	for i, e := range exps {
@@ -70,7 +71,7 @@ func (s *ExprSuite) TestBasicEval(c *C) {
 }
 
 func (s *ExprSuite) TestUnfoundVariableEvaluation(c *C) {
-	exp, err := Compile("does * not + exist")
+	exp, err := Compile("1.0 * does * not + exist")
 	c.Assert(err, IsNil)
 	res, err := exp.Eval(s.c)
 	c.Assert(err, Not(IsNil))
