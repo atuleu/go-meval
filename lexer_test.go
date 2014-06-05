@@ -4,6 +4,7 @@ import (
 	. "gopkg.in/check.v1"
 	"io"
 	"testing"
+	"fmt"
 )
 
 // Hook up gocheck into the "go test" runner.
@@ -46,6 +47,27 @@ func (s *LexSuite) TestLexNumber(c *C) {
 	}
 
 	CheckAllToken(NewLexer(toLex), tokens, c)
+}
+
+type ValueAndError struct {
+	value,error string
+}
+
+func (s *LexSuite) TestReportBadNumberSyntax(c * C) {
+	tests := []ValueAndError{ 
+		{"+0xA234", "+0x"},
+		{"+0b0", "+0b"},
+		{"0xAbe32","0xAb" },
+	}
+	for _,t := range tests {
+		l := NewLexer(t.value)
+		_, err := l.Next()
+		if c.Check(err,Not(IsNil)) == false {
+			continue
+		}
+
+		c.Check(err.Error(),Equals,fmt.Sprintf("Bad number syntax %q",t.error))
+	}
 }
 
 func (s *LexSuite) TestComplexLex(c *C) {
