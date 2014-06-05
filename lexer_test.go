@@ -1,10 +1,10 @@
 package meval
 
 import (
+	"fmt"
 	. "gopkg.in/check.v1"
 	"io"
 	"testing"
-	"fmt"
 )
 
 // Hook up gocheck into the "go test" runner.
@@ -50,23 +50,23 @@ func (s *LexSuite) TestLexNumber(c *C) {
 }
 
 type ValueAndError struct {
-	value,error string
+	value, error string
 }
 
-func (s *LexSuite) TestReportBadNumberSyntax(c * C) {
-	tests := []ValueAndError{ 
+func (s *LexSuite) TestReportBadNumberSyntax(c *C) {
+	tests := []ValueAndError{
 		{"+0xA234", "+0x"},
 		{"-0b0", "-0b"},
 		{"0B02", "0B02"},
-		{"0xAbE","0xAb" },
+		{"0xAbE", "0xAb"},
 	}
-	for _,t := range tests {
+	for _, t := range tests {
 		l := NewLexer(t.value)
 		_, err := l.Next()
-		if c.Check(err,Not(IsNil)) == false {
+		if c.Check(err, Not(IsNil)) == false {
 			continue
 		}
-		c.Check(err.Error(),Equals,fmt.Sprintf("Bad number syntax %q",t.error))
+		c.Check(err.Error(), Equals, fmt.Sprintf("Bad number syntax %q", t.error))
 	}
 }
 
@@ -95,10 +95,9 @@ func (s *LexSuite) TestComplexLex(c *C) {
 	CheckAllToken(NewLexer(toLex), tokens, c)
 }
 
-
-func (s* LexSuite) TestReportUnknownToken(c *C) {
+func (s *LexSuite) TestReportUnknownToken(c *C) {
 	l := NewLexer("@")
-	_,err := l.Next()
-	c.Assert(err,Not(IsNil))
-	c.Check(err.Error(),Equals,"Got unexpected rune @")
+	_, err := l.Next()
+	c.Assert(err, Not(IsNil))
+	c.Check(err.Error(), Equals, "Got unexpected rune @")
 }

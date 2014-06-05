@@ -38,6 +38,7 @@ const (
 
 type operator struct {
 	oType            operatorType
+	name             string
 	precedence, card int
 	leftAssociative  bool
 	poper            queuePoper
@@ -67,6 +68,7 @@ func (o *opStack) unsafeTop() operator {
 
 type function struct {
 	card    int
+	name    string
 	evaluer NEvaluer
 }
 
@@ -74,6 +76,7 @@ func operatorFromFunction(f function) operator {
 	return operator{
 		oType: opFunction,
 		card:  f.card,
+		name:  f.name,
 		poper: func(out *outQueue) Expression {
 			//pop from the queue, is done before
 			res := &nExp{
@@ -103,11 +106,13 @@ func poperForBinaryOperator(evaluer binaryEvaluer) queuePoper {
 }
 
 func registerOperator(t TokenType,
+	name string,
 	precedence int,
 	leftAssociative bool,
 	evaluer binaryEvaluer) {
 	operators[t] = operator{
 		oType:           opStandard,
+		name:            name,
 		poper:           poperForBinaryOperator(evaluer),
 		precedence:      precedence,
 		leftAssociative: leftAssociative,
@@ -121,16 +126,17 @@ func registerOperator(t TokenType,
 func RegisterFunction(name string, cardinality uint, evaluer NEvaluer) {
 	functions[name] = function{
 		card:    int(cardinality),
+		name:    name + "()",
 		evaluer: evaluer,
 	}
 }
 
 func init() {
-	registerOperator(TokPlus, 2, true, func(a float64, b float64) float64 { return a + b })
-	registerOperator(TokMinus, 2, true, func(a float64, b float64) float64 { return a - b })
-	registerOperator(TokMult, 3, true, func(a float64, b float64) float64 { return a * b })
-	registerOperator(TokDivide, 3, true, func(a float64, b float64) float64 { return a / b })
-	registerOperator(TokPower, 4, false, func(a float64, b float64) float64 { return math.Pow(a, b) })
+	registerOperator(TokPlus, "+", 2, true, func(a float64, b float64) float64 { return a + b })
+	registerOperator(TokMinus, "-", 2, true, func(a float64, b float64) float64 { return a - b })
+	registerOperator(TokMult, "*", 3, true, func(a float64, b float64) float64 { return a * b })
+	registerOperator(TokDivide, "/", 3, true, func(a float64, b float64) float64 { return a / b })
+	registerOperator(TokPower, "^", 4, false, func(a float64, b float64) float64 { return math.Pow(a, b) })
 
 	RegisterFunction("pi", 0, func(a []float64) float64 { return math.Pi })
 	RegisterFunction("rand", 0, func(a []float64) float64 { return rand.Float64() })
@@ -144,19 +150,22 @@ func init() {
 	RegisterFunction("sqrt", 1, func(a []float64) float64 { return math.Sqrt(a[0]) })
 	RegisterFunction("exp", 1, func(a []float64) float64 { return math.Exp(a[0]) })
 	RegisterFunction("ln", 1, func(a []float64) float64 { return math.Log(a[0]) })
-	RegisterFunction("log10", 1, func(a []float64) float64 { return math.Log10(a[0]) })
+	RegisterFunction("log", 1, func(a []float64) float64 { return math.Log10(a[0]) })
 	RegisterFunction("ceil", 1, func(a []float64) float64 { return math.Ceil(a[0]) })
 	RegisterFunction("floor", 1, func(a []float64) float64 { return math.Floor(a[0]) })
+
+	RegisterFunction("atan2", 2, func(a []float64) float64 { return math.Atan2(a[0], a[1]) })
 
 }
 
 func popOperatorFromStack(output *outQueue, stack *opStack) error {
-	if stack.size() == 0 {
+	/*	if stack.size() == 0 {
 		return fmt.Errorf("Internal expression compilation error, stack should not be emptyin popOperatorFromStack")
-	}
+	} */
 	op := stack.unsafePop()
 	if output.size() < op.card {
-		return fmt.Errorf("Evaluation stack error, need %d element, but only %d provided",
+		return fmt.Errorf("Evaluation stack error for '%s', need %d element, but only %d provided",
+			op.name,
 			op.card,
 			output.size())
 	}
@@ -207,7 +216,7 @@ func buildAST(input string) (Expression, error) {
 				}
 			}
 
-			if stack.size() == 0 {
+			if stack.size() == 0 || stack.unsafeTop().oType != opLeftParenthesis {
 				return nil, fmt.Errorf("Misplaced comma or mismatched parenthese in %s", input)
 			}
 			continue
@@ -241,9 +250,7 @@ func buildAST(input string) (Expression, error) {
 		if t.Type == TokOParen {
 			stack.push(operator{
 				oType: opLeftParenthesis,
-				poper: func(*outQueue) Expression {
-					return nil
-				},
+				poper: nil,
 			})
 			continue
 		}
@@ -267,7 +274,7 @@ func buildAST(input string) (Expression, error) {
 			continue
 		}
 
-		return nil, fmt.Errorf("Operator %s is not yet implemented", t.Value)
+		return nil, fmt.Errorf("Operator '%s' is not yet implemented", t.Value)
 
 	}
 
@@ -281,9 +288,8 @@ func buildAST(input string) (Expression, error) {
 	}
 
 	if output.size() != 1 {
-		return nil, fmt.Errorf("Evaluation stack error, still got %d element instead of 1 %s",
-			output.size(),
-			output.q)
+		return nil, fmt.Errorf("Evaluation stack error, still got %d element instead of 1 at the final state",
+			output.size())
 	}
 
 	return output.unsafePop(), nil
