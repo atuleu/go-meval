@@ -147,9 +147,8 @@ func lexNumber(l *Lexer) lActionFn {
 				l.emit(TokMinus)
 			}
 			return lexWS
-		} else {
-			l.backup()
 		}
+		l.backup()
 	}
 
 	if l.accept("0") {
@@ -195,7 +194,7 @@ func lexOperator(l *Lexer) lActionFn {
 	// This function is tricky. we should accept the largest operator
 	// found, or split it, as '()' should not be considered a single
 	// bad token, but two good
-	var action lActionFn = nil
+	var action lActionFn
 	var savePos int
 	for {
 		if cAction, ok := operatorToken[l.current()]; ok == true {
@@ -258,7 +257,7 @@ var operatorToken = make(map[string]lActionFn)
 
 var opRegexp = regexp.MustCompile(`^[^a-zA-Z0-9_\s]+$`)
 
-var opTokenAccept string = ""
+var opTokenAccept string
 
 func registerOpToken(opTok string, t TokenType) error {
 	if opRegexp.MatchString(opTok) == false {

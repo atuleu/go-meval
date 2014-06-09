@@ -27,5 +27,4 @@ func (s *ContextSuite) TestInvalidPushWillPanic(c *C) {
 		c.Check(didPanic, Equals, true)
 	}()
 	s.c.pop()
-
 }

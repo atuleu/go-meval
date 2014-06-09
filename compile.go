@@ -144,7 +144,7 @@ func RegisterOperator(opToken string,
 		leftAssociative,
 		func(a, b float64) float64 { return evaluer([]float64{a, b}) })
 
-	nextUserOperator += 1
+	nextUserOperator++
 	return nil
 }
 
@@ -157,7 +157,7 @@ func MustRegisterOperator(opToken string,
 	}
 }
 
-var nextUserOperator TokenType = tokUserStart
+var nextUserOperator = tokUserStart
 
 func init() {
 	registerOperator(TokPlus, "+", 2, true, func(a float64, b float64) float64 { return a + b })
@@ -260,12 +260,16 @@ func buildAST(input string) (Expression, error) {
 				}
 
 				if op1.precedence < op2.precedence {
-					popOperatorFromStack(&output, &stack)
+					if err = popOperatorFromStack(&output, &stack); err != nil {
+						return nil, err
+					}
 					continue
 				}
 
 				if op1.leftAssociative && op1.precedence == op2.precedence {
-					popOperatorFromStack(&output, &stack)
+					if err = popOperatorFromStack(&output, &stack); err != nil {
+						return nil, err
+					}
 					continue
 				}
 

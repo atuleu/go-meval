@@ -2,8 +2,9 @@ package meval
 
 import (
 	"fmt"
-	. "gopkg.in/check.v1"
 	"math"
+
+	. "gopkg.in/check.v1"
 )
 
 type ExprSuite struct {
@@ -125,6 +126,8 @@ func (s *ExprSuite) TestCompilationError(c *C) {
 		{"5 + ", "Evaluation stack error for '+', need 2 element, but only 1 provided"},
 		{"sin()", "Evaluation stack error for 'sin()', need 1 element, but only 0 provided"},
 		{"(5 + )", "Evaluation stack error for '+', need 2 element, but only 1 provided"},
+		{" * 3 + 2", "Evaluation stack error for '*', need 2 element, but only 1 provided"},
+		{"  + 2 + 3", "Evaluation stack error for '+', need 2 element, but only 1 provided"},
 	}
 
 	for i, t := range tests {
@@ -207,9 +210,8 @@ func (s *ExprSuite) TestCanRegisterOperator(c *C) {
 	err := RegisterOperator("<", 10, false, func(a []float64) float64 {
 		if a[0] < a[1] {
 			return 1.0
-		} else {
-			return 0.0
 		}
+		return 0.0
 	})
 	c.Assert(err, IsNil)
 	defer delete(operators, tokUserStart)
@@ -217,9 +219,8 @@ func (s *ExprSuite) TestCanRegisterOperator(c *C) {
 	err = RegisterOperator(">", 10, false, func(a []float64) float64 {
 		if a[0] > a[1] {
 			return 1.0
-		} else {
-			return 0.0
 		}
+		return 0.0
 	})
 
 	c.Assert(err, IsNil)
